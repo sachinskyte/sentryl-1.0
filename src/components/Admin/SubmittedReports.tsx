@@ -1,10 +1,16 @@
-
-import React, { useState } from 'react';
-import { AlertTriangle, Check, X, Eye, RefreshCw, ExternalLink } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAllReports, updateReportStatus } from '@/lib/reportsStore';
+import React, { useState } from "react";
+import {
+  AlertTriangle,
+  Check,
+  X,
+  Eye,
+  RefreshCw,
+  ExternalLink,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAllReports, updateReportStatus } from "@/lib/reportsStore";
 
 type Report = {
   id: string;
@@ -19,6 +25,10 @@ type Report = {
   created_at: string;
   user_id: string;
   description: string;
+  fraud_score?: number | null;
+  fraud_label?: "low" | "medium" | "high" | null;
+  priority_score?: number | null;
+  ml_status?: "ok" | "unavailable" | "failed_closed";
 };
 
 const SubmittedReports: React.FC = () => {
@@ -28,12 +38,16 @@ const SubmittedReports: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const { data: reports = [], isLoading, refetch } = useQuery({
-    queryKey: ['adminReports', selectedUserId],
+  const {
+    data: reports = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["adminReports", selectedUserId],
     queryFn: async (): Promise<Report[]> => {
       let data = getAllReports() as Report[];
       if (selectedUserId) {
-        data = data.filter(r => r.user_id === selectedUserId);
+        data = data.filter((r) => r.user_id === selectedUserId);
       }
       return data;
     },
@@ -41,16 +55,19 @@ const SubmittedReports: React.FC = () => {
   });
 
   const { data: userIds = [] } = useQuery({
-    queryKey: ['uniqueReportUsers'],
+    queryKey: ["uniqueReportUsers"],
     queryFn: async () => {
       const data = getAllReports();
       const userMap = new Map<string, string>();
-      data.forEach(report => {
+      data.forEach((report) => {
         if (report.user_id && !userMap.has(report.user_id)) {
           userMap.set(report.user_id, report.submitter_name);
         }
       });
-      return Array.from(userMap.entries()).map(([id, name]) => ({ id, name: name || 'Unknown User' }));
+      return Array.from(userMap.entries()).map(([id, name]) => ({
+        id,
+        name: name || "Unknown User",
+      }));
     },
   });
 
@@ -63,7 +80,7 @@ const SubmittedReports: React.FC = () => {
         description: "The latest reports have been loaded",
       });
     } catch (error) {
-      console.error('Manual refresh error:', error);
+      console.error("Manual refresh error:", error);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
@@ -72,14 +89,14 @@ const SubmittedReports: React.FC = () => {
   const handleStatusChange = async (reportId: string, newStatus: string) => {
     try {
       updateReportStatus(reportId, newStatus);
-      queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-      queryClient.invalidateQueries({ queryKey: ['recentReports'] });
+      queryClient.invalidateQueries({ queryKey: ["adminReports"] });
+      queryClient.invalidateQueries({ queryKey: ["recentReports"] });
       toast({
         title: "Status Updated",
         description: `Report status changed to ${newStatus}`,
       });
     } catch (error: any) {
-      console.error('Error updating report status:', error);
+      console.error("Error updating report status:", error);
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update report status",
@@ -89,45 +106,51 @@ const SubmittedReports: React.FC = () => {
   };
 
   const handleViewDetails = (report: Report) => {
-    sessionStorage.setItem('reportDetails', JSON.stringify(report));
+    sessionStorage.setItem("reportDetails", JSON.stringify(report));
     navigate(`/admin/report/${report.id}`);
   };
 
   const getSeverityBadgeClass = (severity: string) => {
     switch (severity.toLowerCase()) {
-      case 'critical':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
-      case 'high':
-        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-      case 'medium':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      case 'low':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case "critical":
+        return "bg-red-500/20 text-red-300 border-red-500/30";
+      case "high":
+        return "bg-orange-500/20 text-orange-300 border-orange-500/30";
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+      case "low":
+        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
       default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
     }
   };
 
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'new':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'verified':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      case 'fixed':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'rejected':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      case "new":
+        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+      case "verified":
+        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+      case "fixed":
+        return "bg-green-500/20 text-green-300 border-green-500/30";
+      case "rejected":
+        return "bg-red-500/20 text-red-300 border-red-500/30";
       default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
     }
   };
 
   const totalReports = reports.length;
-  const newReports = reports.filter(report => report.status === 'new').length;
-  const verifiedReports = reports.filter(report => report.status === 'verified').length;
-  const fixedReports = reports.filter(report => report.status === 'fixed').length;
-  const criticalReports = reports.filter(report => report.risk_level === 'critical').length;
+  const newReports = reports.filter((report) => report.status === "new").length;
+  const verifiedReports = reports.filter(
+    (report) => report.status === "verified",
+  ).length;
+  const fixedReports = reports.filter(
+    (report) => report.status === "fixed",
+  ).length;
+  const criticalReports = reports.filter(
+    (report) => report.risk_level === "critical",
+  ).length;
 
   return (
     <div>
@@ -137,22 +160,26 @@ const SubmittedReports: React.FC = () => {
           <h2 className="text-xl font-bold text-white">Submitted Reports</h2>
         </div>
         <div className="flex items-center gap-2">
-          <select 
+          <select
             className="bg-cyber-light/20 border border-cyber-teal/30 text-gray-300 rounded px-2 py-1 text-sm"
-            value={selectedUserId || ''}
+            value={selectedUserId || ""}
             onChange={(e) => setSelectedUserId(e.target.value || null)}
           >
             <option value="">All Users</option>
-            {userIds.map(user => (
-              <option key={user.id} value={user.id}>{user.name}</option>
+            {userIds.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
             ))}
           </select>
-          <button 
-            className={`flex items-center gap-1 px-2 py-1 rounded bg-cyber-teal/20 hover:bg-cyber-teal/30 text-cyber-teal ${isRefreshing ? 'opacity-70' : ''}`}
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded bg-cyber-teal/20 hover:bg-cyber-teal/30 text-cyber-teal ${isRefreshing ? "opacity-70" : ""}`}
             onClick={handleManualRefresh}
             disabled={isRefreshing || isLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             <span>Refresh</span>
           </button>
         </div>
@@ -169,7 +196,9 @@ const SubmittedReports: React.FC = () => {
         </div>
         <div className="bg-yellow-500/10 p-4 rounded-md border border-yellow-500/20">
           <p className="text-xs text-gray-400">Verified</p>
-          <p className="text-2xl font-bold text-yellow-300">{verifiedReports}</p>
+          <p className="text-2xl font-bold text-yellow-300">
+            {verifiedReports}
+          </p>
         </div>
         <div className="bg-green-500/10 p-4 rounded-md border border-green-500/20">
           <p className="text-xs text-gray-400">Fixed</p>
@@ -180,7 +209,7 @@ const SubmittedReports: React.FC = () => {
           <p className="text-2xl font-bold text-red-300">{criticalReports}</p>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin h-8 w-8 border-4 border-cyber-teal border-t-transparent rounded-full"></div>
@@ -190,94 +219,158 @@ const SubmittedReports: React.FC = () => {
           <table className="w-full text-sm text-left text-gray-300">
             <thead className="text-xs uppercase bg-cyber-light/20 text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">ID</th>
-                <th scope="col" className="px-6 py-3">Title</th>
-                <th scope="col" className="px-6 py-3">Company</th>
-                <th scope="col" className="px-6 py-3">Website</th>
-                <th scope="col" className="px-6 py-3">Type</th>
-                <th scope="col" className="px-6 py-3">Severity</th>
-                <th scope="col" className="px-6 py-3">Status</th>
-                <th scope="col" className="px-6 py-3">Submitter</th>
-                <th scope="col" className="px-6 py-3">Date</th>
-                <th scope="col" className="px-6 py-3">Actions</th>
+                <th scope="col" className="px-6 py-3">
+                  ID
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Title
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Company
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Website
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Type
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Severity
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Fraud
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Submitter
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Date
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {reports.map(report => (
-                <tr key={report.id} className="border-b border-cyber-teal/10 animate-fadeIn">
+              {reports.map((report) => (
+                <tr
+                  key={report.id}
+                  className="border-b border-cyber-teal/10 animate-fadeIn"
+                >
                   <td className="px-6 py-4">{report.id.substring(0, 8)}</td>
                   <td className="px-6 py-4">{report.title}</td>
                   <td className="px-6 py-4">{report.company}</td>
                   <td className="px-6 py-4">
                     {report.website && (
-                      <a 
-                        href={report.website.startsWith('http') ? report.website : `https://${report.website}`} 
-                        target="_blank" 
+                      <a
+                        href={
+                          report.website.startsWith("http")
+                            ? report.website
+                            : `https://${report.website}`
+                        }
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center text-cyber-teal hover:underline"
                       >
-                        {report.website.replace(/^https?:\/\//, '').substring(0, 15)}
-                        {report.website.replace(/^https?:\/\//, '').length > 15 ? '...' : ''}
+                        {report.website
+                          .replace(/^https?:\/\//, "")
+                          .substring(0, 15)}
+                        {report.website.replace(/^https?:\/\//, "").length > 15
+                          ? "..."
+                          : ""}
                         <ExternalLink size={12} className="ml-1" />
                       </a>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {report.vulnerability_type || 'N/A'}
+                    {report.vulnerability_type || "N/A"}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs border ${getSeverityBadgeClass(report.risk_level)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs border ${getSeverityBadgeClass(report.risk_level)}`}
+                    >
                       {report.risk_level}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeClass(report.status)}`}>
+                    {report.ml_status === "unavailable" ? (
+                      <span className="px-2 py-1 rounded-full text-xs border bg-gray-500/20 text-gray-300 border-gray-500/30">
+                        Unavailable
+                      </span>
+                    ) : report.ml_status === "failed_closed" ? (
+                      <span className="px-2 py-1 rounded-full text-xs border bg-red-500/20 text-red-300 border-red-500/30">
+                        Failed Closed
+                      </span>
+                    ) : report.fraud_score != null && report.fraud_label ? (
+                      <span className="px-2 py-1 rounded-full text-xs border bg-cyber-teal/20 text-cyber-teal border-cyber-teal/30">
+                        {report.fraud_label.toUpperCase()} (
+                        {report.fraud_score.toFixed(2)})
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 rounded-full text-xs border bg-gray-500/20 text-gray-300 border-gray-500/30">
+                        Not Scored
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeClass(report.status)}`}
+                    >
                       {report.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">{report.submitter_name}</td>
-                  <td className="px-6 py-4">{new Date(report.created_at).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    {new Date(report.created_at).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 flex gap-2">
-                    <button 
+                    <button
                       className="p-1 rounded-full bg-cyber-teal/20 hover:bg-cyber-teal/40 text-cyber-teal"
                       title="View Details"
                       onClick={() => handleViewDetails(report)}
                     >
                       <Eye size={16} />
                     </button>
-                    {report.status === 'new' ? (
+                    {report.status === "new" ? (
                       <>
-                        <button 
+                        <button
                           className="p-1 rounded-full bg-green-500/20 hover:bg-green-500/40 text-green-400"
                           title="Verify"
-                          onClick={() => handleStatusChange(report.id, 'verified')}
+                          onClick={() =>
+                            handleStatusChange(report.id, "verified")
+                          }
                         >
                           <Check size={16} />
                         </button>
-                        <button 
+                        <button
                           className="p-1 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-400"
                           title="Reject"
-                          onClick={() => handleStatusChange(report.id, 'rejected')}
+                          onClick={() =>
+                            handleStatusChange(report.id, "rejected")
+                          }
                         >
                           <X size={16} />
                         </button>
                       </>
-                    ) : report.status === 'verified' ? (
-                      <button 
+                    ) : report.status === "verified" ? (
+                      <button
                         className="p-1 rounded-full bg-green-500/20 hover:bg-green-500/40 text-green-400"
                         title="Mark as Fixed"
-                        onClick={() => handleStatusChange(report.id, 'fixed')}
+                        onClick={() => handleStatusChange(report.id, "fixed")}
                       >
                         <Check size={16} />
                       </button>
                     ) : null}
-                    
-                    <button 
+
+                    <button
                       className="p-1 rounded-full bg-blue-500/20 hover:bg-blue-500/40 text-blue-400"
                       title="View User Dashboard"
                       onClick={() => {
                         const url = `/dashboard?user_id=${report.user_id}`;
-                        window.open(url, '_blank');
+                        window.open(url, "_blank");
                       }}
                     >
                       <ExternalLink size={16} />

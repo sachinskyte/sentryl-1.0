@@ -1,7 +1,7 @@
 // Shared localStorage store for vulnerability reports
 // This replaces the Supabase 'reports' table for local-only operation.
 
-const REPORTS_KEY = 'sentryl_reports';
+const REPORTS_KEY = "sentryl_reports";
 
 export type Report = {
   id: string;
@@ -17,6 +17,14 @@ export type Report = {
   submitter_name: string;
   created_at: string;
   bounty?: number;
+  fraud_score?: number | null;
+  fraud_label?: "low" | "medium" | "high" | null;
+  fraud_confidence?: number | null;
+  fraud_reason_codes?: string[];
+  priority_score?: number | null;
+  ml_model_version?: string | null;
+  ml_features_used?: string[];
+  ml_status?: "ok" | "unavailable" | "failed_closed";
 };
 
 export function getAllReports(): Report[] {
@@ -32,7 +40,7 @@ export function saveAllReports(reports: Report[]): void {
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
 }
 
-export function insertReport(data: Omit<Report, 'id' | 'created_at'>): Report {
+export function insertReport(data: Omit<Report, "id" | "created_at">): Report {
   const reports = getAllReports();
   const newReport: Report = {
     ...data,
@@ -46,7 +54,7 @@ export function insertReport(data: Omit<Report, 'id' | 'created_at'>): Report {
 
 export function updateReportStatus(reportId: string, newStatus: string): void {
   const reports = getAllReports();
-  const idx = reports.findIndex(r => r.id === reportId);
+  const idx = reports.findIndex((r) => r.id === reportId);
   if (idx !== -1) {
     reports[idx].status = newStatus;
     saveAllReports(reports);
@@ -54,7 +62,7 @@ export function updateReportStatus(reportId: string, newStatus: string): void {
 }
 
 export function getReportsByUserId(userId: string): Report[] {
-  return getAllReports().filter(r => r.user_id === userId);
+  return getAllReports().filter((r) => r.user_id === userId);
 }
 
 export function getRecentReports(limit = 5): Report[] {

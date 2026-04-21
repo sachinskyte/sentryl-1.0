@@ -1,9 +1,9 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { getAllReports, updateReportStatus } from '@/lib/reportsStore';
-import VulnerabilityDetails from '@/components/Dashboard/VulnerabilityDetails';
-import { useQueryClient } from '@tanstack/react-query';
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { getAllReports, updateReportStatus } from "@/lib/reportsStore";
+import VulnerabilityDetails from "@/components/Dashboard/VulnerabilityDetails";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Adapter: reportsStore Report → VulnerabilityFeed Report shape
 const toFeedReport = (r: ReturnType<typeof getAllReports>[number]) => ({
@@ -15,6 +15,10 @@ const toFeedReport = (r: ReturnType<typeof getAllReports>[number]) => ({
   submitter_name: r.submitter_name,
   created_at: r.created_at,
   description: r.description,
+  fraud_score: r.fraud_score ?? null,
+  fraud_label: r.fraud_label ?? null,
+  priority_score: r.priority_score ?? null,
+  ml_status: r.ml_status,
 });
 
 const AdminReportDetail: React.FC = () => {
@@ -25,15 +29,17 @@ const AdminReportDetail: React.FC = () => {
   // First try sessionStorage (set by SubmittedReports navigate), then fall back to full scan
   let report: ReturnType<typeof getAllReports>[number] | undefined;
   try {
-    const fromSession = sessionStorage.getItem('reportDetails');
+    const fromSession = sessionStorage.getItem("reportDetails");
     if (fromSession) {
       const parsed = JSON.parse(fromSession);
       if (parsed.id === id) report = parsed;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   if (!report) {
-    report = getAllReports().find(r => r.id === id);
+    report = getAllReports().find((r) => r.id === id);
   }
 
   if (!report) {
@@ -42,7 +48,7 @@ const AdminReportDetail: React.FC = () => {
         <p className="text-gray-400">Report not found.</p>
         <button
           className="mt-4 cyber-button-outline px-4 py-2 text-sm"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate("/admin")}
         >
           Back to Admin
         </button>
@@ -51,17 +57,17 @@ const AdminReportDetail: React.FC = () => {
   }
 
   const handleClose = () => {
-    sessionStorage.removeItem('reportDetails');
-    navigate('/admin');
+    sessionStorage.removeItem("reportDetails");
+    navigate("/admin");
   };
 
   const handleStatusUpdate = () => {
-    queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-    queryClient.invalidateQueries({ queryKey: ['recentReports'] });
+    queryClient.invalidateQueries({ queryKey: ["adminReports"] });
+    queryClient.invalidateQueries({ queryKey: ["recentReports"] });
     // Reload the report from store so the UI reflects the new status
-    const updated = getAllReports().find(r => r.id === id);
+    const updated = getAllReports().find((r) => r.id === id);
     if (updated) {
-      sessionStorage.setItem('reportDetails', JSON.stringify(updated));
+      sessionStorage.setItem("reportDetails", JSON.stringify(updated));
     }
   };
 
