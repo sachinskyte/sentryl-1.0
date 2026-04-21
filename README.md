@@ -9,8 +9,9 @@
       <img src="https://img.shields.io/badge/LIVE_DEMO-sentryl.vercel.app-0ED8C5?style=for-the-badge&logo=vercel" alt="Live Demo" width="300">
     </a>
     <p style="margin-top: 8px;">
-      <strong>Demo credentials:</strong><br>
-      Email: <code>DEMO_EMAIL_PLACEHOLDER</code> | Password: <code>DEMO_PASSWORD_PLACEHOLDER</code>
+      <strong>Local login credentials:</strong><br>
+      Admin ID: <code>admin-id</code> | Email: <code>admin@sentryl.com</code> | Password: <code>admin123</code><br>
+      Demo ID: <code>demo-id</code> | Shortcut: <code>demo</code> | Password: <code>demo123</code>
     </p>
   </div>
   

@@ -1,0 +1,22 @@
+flowchart TD
+  U[User submits report in SubmitReport UI] --> P[Frontend builds payload]
+  P --> C[scoreFraud client call\nPOST /ml/fraud-score]
+
+  C --> V[Backend validates schema\nand required fields]
+  V --> F[Backend deterministic feature engineering\n12-feature vector]
+  F --> O[ONNX runtime inference]
+  O --> R[Response: score, label, priority,\nconfidence, model_version, reason_codes]
+
+  R --> S[Frontend inserts report into local store\nwith ML fields]
+  S --> D1[Vulnerability Feed\nfilter/sort/badges]
+  S --> D2[Admin Submitted Reports\nfraud column]
+  S --> D3[Vulnerability Details\nfraud context]
+
+  C --> E1{ML call fails?}
+  E1 -- Service unavailable --> U1[Continue submit\nml_status=unavailable\nreason=ML_SERVICE_UNAVAILABLE]
+  E1 -- 422 fail-closed --> U2[Continue submit\nml_status=failed_closed\nreason=MISSING_REQUIRED_FEATURE]
+  U1 --> S
+  U2 --> S
+
+  X[Optional Zero-Day external events] --> XC[scoreFraud source=external_event]
+  XC --> D1
