@@ -269,3 +269,89 @@ Capture screenshots of:
 
 Recommended short conclusion:
 - "Model is integrated server-side, predictions are versioned, failures are handled safely, and outputs are visible in triage workflows."
+
+## 12. ML Test Graphs (For Presentation)
+
+Use this section to present your test evidence visually. Replace sample numbers with your own run results.
+
+### A. Confusion Matrix (Sample)
+
+```mermaid
+flowchart LR
+	subgraph Actual Legit
+		AL1[Pred Legit\nTN: 78]
+		AL2[Pred Fraud\nFP: 12]
+	end
+
+	subgraph Actual Fraud
+		AF1[Pred Legit\nFN: 9]
+		AF2[Pred Fraud\nTP: 41]
+	end
+```
+
+How to explain it in class:
+- True Positive (TP): fraud correctly flagged
+- False Positive (FP): legit report flagged as fraud
+- False Negative (FN): fraud missed by model
+- True Negative (TN): legit correctly kept as legit
+
+### B. Precision/Recall By Threshold (Sample)
+
+```mermaid
+xychart-beta
+	title "Precision and Recall vs Threshold"
+	x-axis [0.30, 0.40, 0.50, 0.60, 0.70]
+	y-axis "Score" 0 --> 1
+	line [0.58, 0.65, 0.72, 0.80, 0.88]
+	line [0.91, 0.85, 0.79, 0.70, 0.61]
+```
+
+How to explain it:
+- As threshold increases, precision usually goes up and recall goes down.
+- Use this chart to justify your current production threshold policy.
+
+### C. Latency Trend (Sample)
+
+```mermaid
+xychart-beta
+	title "p95 Prediction Latency (ms)"
+	x-axis [Run1, Run2, Run3, Run4, Run5]
+	y-axis "ms" 0 --> 500
+	bar [210, 230, 245, 220, 205]
+```
+
+How to explain it:
+- Shows service responsiveness stability.
+- Use together with error rate to show operational readiness.
+
+### D. Prediction Outcome Breakdown (Sample)
+
+```mermaid
+pie showData
+	title Prediction Outcome Share
+	"Scored OK" : 82
+	"Service Unavailable" : 11
+	"Failed Closed" : 7
+```
+
+How to explain it:
+- Demonstrates reliability and fallback behavior.
+- Makes your non-blocking submission policy easy to understand.
+
+### E. Fillable Metrics Table
+
+| Metric | Sample Value | Your Value |
+| --- | --- | --- |
+| PR-AUC | 0.81 |  |
+| Recall at Precision 0.80 | 0.69 |  |
+| Calibration Error | 0.07 |  |
+| p95 Latency (ms) | 245 |  |
+| Error Rate (%) | 4.1 |  |
+| Feature Null Rate (%) | 1.8 |  |
+
+### F. One-Minute Demo Script
+
+1. Show confusion matrix and explain TP/FP/FN/TN quickly.
+2. Show threshold curve and explain why threshold 0.70 is used for high-risk band.
+3. Show latency and outcome pie chart to prove service stability and safe fallback.
+4. End with UI screenshot showing fraud badges and triage sorting/filtering.
