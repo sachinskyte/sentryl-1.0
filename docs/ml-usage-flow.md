@@ -2,6 +2,14 @@
 
 This document explains the real implementation flow of the fraud model in this repo: where scoring happens, how data moves, what gets stored, and what users/admins see.
 
+## Plain-Language Summary
+
+The ML model scores each vulnerability report for fraud or spam risk and returns a label, confidence, and priority score. In this codebase, the frontend does not calculate the model result itself. It sends the report data to the backend ML service, the backend runs deterministic feature engineering and ONNX inference, and the frontend stores the returned ML fields with the report.
+
+In practice, the model is used to help triage reports faster. A high fraud score pushes a report higher in review workflows, while low or missing scores still allow the report to be saved. If the ML service fails, the app keeps working and marks the report with a fallback ML status instead of blocking submission.
+
+Short version for demos: the model is integrated server-side, it helps rank and explain reports, and the UI shows its result in the dashboard, admin table, and detail view.
+
 ## Mermaid Diagram
 
 ```mermaid
